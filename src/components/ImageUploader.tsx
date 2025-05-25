@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 
@@ -31,7 +31,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUploadComplete }) => {
     formData.append('image', file);
 
     try {
-      const response = await axios.post('http://localhost:3000/api/detect', formData, {
+      const response = await axios.post('http://localhost:5000/api/detect', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
