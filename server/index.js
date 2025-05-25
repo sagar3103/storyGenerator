@@ -85,8 +85,8 @@ app.post('/api/detect', upload.single('image'), (req, res) => {
       }
 
       return res.json({
-        originalImage: `/uploads/${path.basename(inputImagePath)}`,
-        processedImage: `/outputs/${path.basename(inputImagePath)}`,
+        originalImage: `http://localhost:${port}/uploads/${path.basename(inputImagePath)}`,
+        processedImage: `http://localhost:${port}/outputs/${path.basename(inputImagePath)}`,
         detectedObjects: detections
       });
     } catch (parseError) {
