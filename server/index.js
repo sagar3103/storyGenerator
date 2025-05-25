@@ -65,7 +65,7 @@ app.post('/api/detect', upload.single('image'), (req, res) => {
   const inputImagePath = req.file.path;
   const outputImagePath = path.join(__dirname, 'outputs', path.basename(inputImagePath));
 
-  // Call Python detection script
+  // Call Python detection script with explicit python3 path
   PythonShell.run('server/detect.py', {
     mode: 'text',
     pythonPath: 'python3',
