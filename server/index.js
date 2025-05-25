@@ -15,9 +15,15 @@ const port = 3000;
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    const outputDir = path.join(__dirname, 'outputs');
+    
+    // Create directories if they don't exist
+    [uploadDir, outputDir].forEach(dir => {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    });
+    
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
@@ -39,12 +45,6 @@ const upload = multer({
   }
 });
 
-// Create outputs directory if it doesn't exist
-const outputsDir = path.join(__dirname, 'outputs');
-if (!fs.existsSync(outputsDir)) {
-  fs.mkdirSync(outputsDir, { recursive: true });
-}
-
 // Enable CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -63,13 +63,12 @@ app.post('/api/detect', upload.single('image'), (req, res) => {
   }
 
   const inputImagePath = req.file.path;
-  const fileName = path.basename(inputImagePath);
-  const outputImagePath = path.join(outputsDir, fileName);
+  const outputImagePath = path.join(__dirname, 'outputs', path.basename(inputImagePath));
 
   // Call Python detection script
-  PythonShell.run('detect.py', {
+  PythonShell.run('server/detect.py', {
     mode: 'text',
-    pythonPath: 'python3', // Or 'python' on Windows
+    pythonPath: 'python3',
     args: [inputImagePath, outputImagePath]
   }, function (err, results) {
     if (err) {
@@ -79,9 +78,15 @@ app.post('/api/detect', upload.single('image'), (req, res) => {
 
     try {
       const detections = JSON.parse(results[0]);
+      
+      // Check if there was an error from Python script
+      if (detections.error) {
+        return res.status(500).json({ error: detections.error });
+      }
+
       return res.json({
-        originalImage: `/uploads/${fileName}`,
-        processedImage: `/outputs/${fileName}`,
+        originalImage: `/uploads/${path.basename(inputImagePath)}`,
+        processedImage: `/outputs/${path.basename(inputImagePath)}`,
         detectedObjects: detections
       });
     } catch (parseError) {
